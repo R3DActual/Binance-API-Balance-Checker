@@ -14,19 +14,7 @@ class BiUS:
         self.lock = threading.Lock()
         self.hits = 0
         self.bad = 0
-        self.error = 0 
-    
-    def download(self, url: str, dest_folder: str):
-        with open(dest_folder, "wb") as f:
-            response = requests.get(url, stream=True)
-            total_length = response.headers.get('content-length')
-
-            if total_length != None:
-                dl = 0
-                total_length = int(total_length)
-                for data in response.iter_content(chunk_size=4096):
-                    dl += len(data)
-                    f.write(data)
+        self.error = 0
 
     def ui(self):
         os.system('cls')
