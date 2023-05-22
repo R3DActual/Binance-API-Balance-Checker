@@ -1,4 +1,4 @@
-# Binance-API-Balance-Checker
+# BinanceUS-API-Balance-Checker
 
 ## Description
 
