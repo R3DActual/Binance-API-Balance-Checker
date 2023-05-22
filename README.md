@@ -1,4 +1,5 @@
 # BinanceUS-API-Balance-Checker
+![image](https://i.imgur.com/evbfdCn.png)
 I was planning to add proxies option to this but I abandoned this project.
 
 ## Description
