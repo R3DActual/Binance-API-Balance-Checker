@@ -1,4 +1,5 @@
 # BinanceUS-API-Balance-Checker
+I was planning to add proxies option to this but I abandoned this project.
 
 ## Description
 
