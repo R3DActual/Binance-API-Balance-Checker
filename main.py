@@ -25,7 +25,7 @@ class BiUS:
 
     def ui(self):
         os.system('cls')
-        ctypes.windll.kernel32.SetConsoleTitleW('[BinUS API Balance Checker - Made by R3DActual#6969]')
+        ctypes.windll.kernel32.SetConsoleTitleW('[BinUS API Balance Checker - Made by R3DAct]')
         text = '''
                     ▄▄▄▄    ██▓ ███▄    █     █    ██   ██████ 
                     ▓█████▄ ▓██▒ ██ ▀█   █     ██  ▓██▒▒██    ▒ 
